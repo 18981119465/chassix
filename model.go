@@ -10,7 +10,7 @@ import (
 //Page page
 type Page struct {
 	List   interface{} `json:"list,omitempty"`
-	Total  int        `json:"total,omitempty"`
+	Total  int64        `json:"total,omitempty"`
 	Offset int        `json:"offset,omitempty"`
 	Index  int        `json:"page_index,omitempty"`
 	Size   int        `json:"page_size,omitempty"`
