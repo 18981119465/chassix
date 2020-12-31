@@ -24,4 +24,5 @@ require (
 	gorm.io/driver/postgres v1.0.6
 	gorm.io/driver/sqlite v1.1.4
 	gorm.io/gorm v1.20.9
+	gorm.io/plugin/soft_delete v0.0.0-20201108091645-9225e6aa0cc9
 )

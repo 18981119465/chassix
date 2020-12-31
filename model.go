@@ -4,16 +4,17 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+	"gorm.io/plugin/soft_delete"
 )
 
 //Page page
 type Page struct {
 	List   interface{} `json:"list,omitempty"`
-	Total  uint        `json:"total,omitempty"`
-	Offset uint        `json:"offset,omitempty"`
-	Index  uint        `json:"page_index,omitempty"`
-	Size   uint        `json:"page_size,omitempty"`
-	Pages  uint        `json:"pages,omitempty"`
+	Total  int        `json:"total,omitempty"`
+	Offset int        `json:"offset,omitempty"`
+	Index  int        `json:"page_index,omitempty"`
+	Size   int        `json:"page_size,omitempty"`
+	Pages  int        `json:"pages,omitempty"`
 }
 
 //Pagination 新建分页查询
@@ -24,8 +25,8 @@ type Pagination struct {
 }
 
 //NewPage new page
-func newPage(data interface{}, index, size, count uint) *Page {
-	var pages uint
+func newPage(data interface{}, index, size, count int) *Page {
+	var pages int
 	if count%size == 0 {
 		pages = count / size
 	} else {
@@ -42,14 +43,14 @@ func newPage(data interface{}, index, size, count uint) *Page {
 }
 
 //NewPagination pagination query
-func NewPagination(db *gorm.DB, model interface{}, pageIndex, pageSize uint) *Page {
+func NewPagination(db *gorm.DB, model interface{}, pageIndex, pageSize int) *Page {
 	var count int64
 	db.Count(&count)
 	if count > 0 && count > int64(pageIndex*pageSize) {
 		db.Limit(int(pageSize)).
 			Offset(int(pageIndex * pageSize)).
 			Find(model)
-		return newPage(model, pageIndex, pageSize, uint(count))
+		return newPage(model, pageIndex, pageSize, int(count))
 	}
 	return nil
 }
@@ -64,7 +65,7 @@ type BaseDO struct {
 	ID        uint       `gorm:"primary_key" json:"id"`            // primary key
 	CreatedAt time.Time  `json:"created_at,omitempty"`             // created time
 	UpdatedAt time.Time  `json:"updated_at,omitempty"`             //updated time
-	DeletedAt *time.Time `sql:"index" json:"deleted_at,omitempty"` //deleted time
+	DeletedAt soft_delete.DeletedAt //deleted time
 }
 
 //ComplexBaseDO gorm model composed Model add Addition
