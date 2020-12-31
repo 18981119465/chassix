@@ -3,7 +3,7 @@ package chassis
 import (
 	"time"
 
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 //Page page
@@ -43,13 +43,13 @@ func newPage(data interface{}, index, size, count uint) *Page {
 
 //NewPagination pagination query
 func NewPagination(db *gorm.DB, model interface{}, pageIndex, pageSize uint) *Page {
-	var count uint
+	var count int64
 	db.Count(&count)
-	if count > 0 && count > pageIndex*pageSize {
-		db.Limit(pageSize).
-			Offset(pageIndex * pageSize).
+	if count > 0 && count > int64(pageIndex*pageSize) {
+		db.Limit(int(pageSize)).
+			Offset(int(pageIndex * pageSize)).
 			Find(model)
-		return newPage(model, pageIndex, pageSize, count)
+		return newPage(model, pageIndex, pageSize, uint(count))
 	}
 	return nil
 }

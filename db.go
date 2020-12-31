@@ -2,10 +2,15 @@ package chassis
 
 import (
 	"errors"
+	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm/logger"
+	"log"
 	"sync"
 	"time"
 
-	"github.com/jinzhu/gorm"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 
 	"c6x.io/chassis/config"
 	"c6x.io/chassis/logx"
@@ -39,24 +44,45 @@ func initMultiDBSource() {
 
 func mustConnectDB(dbCfg *config.DatabaseConfig) *gorm.DB {
 	log := logx.New().Service("chassis").Category("gorm")
-	dialect := dbCfg.Dialect
-	if "" == dialect {
-		dialect = "mysql"
+	dialectConfig := dbCfg.Dialect
+	var dialect gorm.Dialector
+	switch dialectConfig {
+	case "mysql":
+		dialect = mysql.Open(dbCfg.DSN)
+	case "":
+		dialect = mysql.Open(dbCfg.DSN)	
+	case "postgres":
+		dialect = postgres.Open(dbCfg.DSN)
+	case "sqlite3":
+		dialect = sqlite.Open(dbCfg.DSN)
+	default:
+		log.Fatalln("database driver config error: invalid dialect " + dbCfg.DSN)
 	}
-	db, err := gorm.Open(dialect, dbCfg.DSN)
+	if "" == dialectConfig {
+		dialect = mysql.Open(dbCfg.DSN)
+	}
+	gCfg := &gorm.Config{}
+	if false == dbCfg.ShowSQL {
+		gCfg.Logger = logger.Default.LogMode(logger.Silent)
+	}
+
+	db, err := gorm.Open(dialect, gCfg)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	db.LogMode(dbCfg.ShowSQL)
+	sqlDB, err := db.DB()
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	if dbCfg.MaxIdle > 0 {
-		db.DB().SetMaxIdleConns(dbCfg.MaxIdle)
+		sqlDB.SetMaxIdleConns(dbCfg.MaxIdle)
 	}
 	if dbCfg.MaxOpen > 0 && dbCfg.MaxOpen > dbCfg.MaxIdle {
-		db.DB().SetMaxOpenConns(100)
+		sqlDB.SetMaxOpenConns(100)
 	}
 	if dbCfg.MaxLifetime > 0 {
-		db.DB().SetConnMaxLifetime(time.Duration(dbCfg.MaxLifetime) * time.Second)
+		sqlDB.SetConnMaxLifetime(time.Duration(dbCfg.MaxLifetime) * time.Second)
 	}
 	return db
 }
@@ -84,7 +110,11 @@ func CloseAllDB() error {
 		return ErrNoDatabaseConfiguration
 	}
 	for _, v := range multiDBSource.dbs {
-		if err := v.Close(); nil != err {
+		db, err := v.DB()
+		if err != nil {
+			log.Fatalln(err)
+		}
+		if err := db.Close(); nil != err {
 			return err
 		}
 	}

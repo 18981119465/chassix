@@ -30,7 +30,7 @@ databases:
     showSQL: true
 redis:
   mode: simple  #3种模式 1 simple (单机/主从) 2 sentinel 哨兵模式 3 cluster 集群模式 目前支持
-  addr: redis:6379
+  addr: 127.0.0.1:6379
   sentinel:
     # The master name.
     master:
