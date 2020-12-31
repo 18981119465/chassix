@@ -25,12 +25,12 @@ type Pagination struct {
 }
 
 //NewPage new page
-func newPage(data interface{}, index, size, count int) *Page {
+func newPage(data interface{}, index, size int, count int64) *Page {
 	var pages int
-	if count%size == 0 {
-		pages = count / size
+	if count%int64(size) == 0 {
+		pages = int(count / int64(size))
 	} else {
-		pages = count/size + 1
+		pages = int(count/int64(size) + 1)
 	}
 	return &Page{
 		List:   data,
@@ -50,7 +50,7 @@ func NewPagination(db *gorm.DB, model interface{}, pageIndex, pageSize int) *Pag
 		db.Limit(int(pageSize)).
 			Offset(int(pageIndex * pageSize)).
 			Find(model)
-		return newPage(model, pageIndex, pageSize, int(count))
+		return newPage(model, pageIndex, pageSize, count)
 	}
 	return nil
 }
