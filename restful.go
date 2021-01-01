@@ -84,16 +84,16 @@ func Serve(svc []*restful.WebService) {
 }
 
 //PageQueryParams get page params from request
-func PageQueryParams(req *restful.Request) (pageIndex, pageSize uint) {
+func PageQueryParams(req *restful.Request) (pageIndex, pageSize int) {
 	// var err error
 	if pi, err := strconv.Atoi(req.QueryParameter(PageIndexKey)); err == nil {
-		pageIndex = uint(pi)
+		pageIndex = pi
 	} else {
 		pageIndex = DefaultPageIndexValue
 
 	}
 	if pz, err := strconv.Atoi(req.QueryParameter(PageSizeKey)); err == nil {
-		pageSize = uint(pz)
+		pageSize = pz
 	} else {
 		pageSize = DefaultPageSizeValue
 
