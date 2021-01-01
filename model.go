@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"gorm.io/gorm"
-	"gorm.io/plugin/soft_delete"
 )
 
 //Page page
@@ -65,7 +64,7 @@ type BaseDO struct {
 	ID        uint       `gorm:"primary_key" json:"id"`            // primary key
 	CreatedAt time.Time  `json:"created_at,omitempty"`             // created time
 	UpdatedAt time.Time  `json:"updated_at,omitempty"`             //updated time
-	DeletedAt soft_delete.DeletedAt //deleted time
+	DeletedAt *time.Time `gorm:"index" json:"deleted_at,omitempty"` //deleted time
 }
 
 //ComplexBaseDO gorm model composed Model add Addition
